@@ -8,19 +8,27 @@ import { rxResource } from '@angular/core/rxjs-interop';
   selector: 'app-root',
   imports: [CommonModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
   readonly service = inject(SearchService);
   readonly keyword = signal('');
+  // readonly results = resource({
+  //   request: () => this.keyword(),
+  //   loader: (obj) => this.service.search(obj.request, obj.abortSignal),
+  // });
+  readonly results = rxResource({
+    request: () => this.keyword(),
+    loader: (obj) => this.service.rxSearch(obj.request),
+  });
 
-  readonly results = signal<Color[]>([
-    { name: 'red', code: '#ff0000' },
-    { name: 'green', code: '#00ff00' },
-    { name: 'blue', code: '#0000ff' }, 
-    { name: 'yellow', code: '#ffff00' },
-    { name: 'cyan', code: '#00ffff' },
-    { name: 'magenta', code: '#ff00ff' }
-  ]);
+  constructor() {
+    effect(() => {
+      console.log('resource status', this.results.status());
+    });
+  }
 
+  resetResource() {
+    this.results.set([]);
+  }
 }
